@@ -1,62 +1,49 @@
-class Main {
-  public static void main(String[] args) {
-    int[] nums = {1, 2, 3, 4};
-    System.out.println(findRange(nums, 4));
-  }
- 
-  //time - O(log n) with constant space
-  private static int findRange(int[] nums, int target) {
-    //edge
-    if(nums == null || nums.length == 0)
-    {
-      return Integer.MAX_VALUE;
+/**
+ * // This is ArrayReader's API interface.
+ * // You should not implement it, or speculate about its implementation
+ * interface ArrayReader {
+ *     public int get(int index) {}
+ * }
+ */
+
+class Solution {
+    public int search(ArrayReader reader, int target) {
+        //initial window size = 1
+        int low = 0;
+        int high = 0;
+        
+        //as long as largest element in current window (element at high) is lower than target, expand the window to twixe the original length
+        while(reader.get(high) < target)
+        {
+            int newHigh = high + ((high - low + 1) * 2);
+            int newLow = high + 1;
+            low = newLow;
+            high = newHigh;
+        }
+        //target is within low and high as loop broke
+        return find(reader, target, low, high);
     }
     
-    int low = 0;
-    int high = 1;
-    int current = nums[high];
-
-    while(current < target)
-    {
-      //if() never executes in an infinite []
-      if(high * 2 > nums.length - 1) //index out of bounds
-      {
-        //start binary serach from current high till end of array
-        return binarySerach(nums, high, nums.length, target);
-      }
-      high = high * 2;
-      current = nums[high];
+  //normal O(log n) binary search to find target
+    private int find(ArrayReader nums, int target, int low, int high) {
+        int result = -1;
+        while(low <= high)
+        {
+            int mid = low + (high - low) / 2;
+            if(nums.get(mid) == target)
+            {
+                result = mid;
+                return result;
+            }
+            else if(nums.get(mid) < target)
+            {
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid - 1;
+            }
+        }
+        return result;
     }
-
-    //when while() breaks, current >= target
-    low = high / 2; //current was less than high till prev iteration of while()
-
-    //so target is between updated low and high
-    int result = binarySerach(nums, low, high, target);
-
-    return result;
-  }
-
-  //time - O(log n) with constant space
-  private static int binarySerach(int[] nums, int low, int high, int target) {
-    while(low <= high)
-    {
-      int mid = low + (high - low) / 2;
-      if(nums[mid] == target)
-      {
-        return mid;
-      }
-
-      else if(nums[mid] > target)
-      {
-        high = mid - 1;
-      }
-
-      else   
-      {
-        low = mid + 1;
-      }
-    }
-    return -1;
-  }
 }
