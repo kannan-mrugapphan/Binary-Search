@@ -26,7 +26,6 @@ class Solution {
         
         int low = 1;
         int high = nums.length - 2;
-        int result = -1;
         
         while(low <= high)
         {
