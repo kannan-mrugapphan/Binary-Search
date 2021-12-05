@@ -7,40 +7,39 @@ class Solution {
         //edge
         if(nums == null || nums.length == 0)
         {
-            return Integer.MIN_VALUE;
+            return -1; //invalid case
         }
         
-        int low = 0;
+        int low = 0; //initial search space is the whole array
         int high = nums.length - 1;
         
         while(low <= high)
         {
             int mid = low + (high - low) / 2;
-            if((mid == 0 || nums[mid - 1] <= nums[mid]) && (mid == nums.length - 1 || nums[mid + 1] <= nums[mid]))
+            //mid is peak if nums[mid - 1] <= nums[mid] <= nums[mid + 1]
+            if((mid == 0 || nums[mid] >= nums[mid - 1]) && (mid == nums.length - 1 || nums[mid] >= nums[mid + 1]))
             {
-                //mid is a valid peak -> mid is greater than or equal to both prev and next
                 return mid;
             }
-            
-            else if(mid > 0 && nums[mid - 1] >= nums[mid]) //prev greater than or equal to mid
+            //current mid is less than next, potentially mid + 1 is a peak as there is one smaller element in left
+            else if(mid != nums.length - 1 && nums[mid] < nums[mid + 1])
             {
-                //prev is a possible peak -> so continue seraching in left
-                high = mid - 1;
-            }
-            
-            else //next greater than or equal to mid
-            {
-                //next is a possible peak -> so continue seraching in right
                 low = mid + 1;
+            }
+            //current mid is less than prev, potentially mid - 1 is a peak as there is one smaller element right
+            else if(mid != 0 && nums[mid] < nums[mid - 1])
+            {
+                high = mid - 1;
             }
         }
         
-        return -1;
+        return -1; //code never reaches here
     }
 }
 
 // 852.
 // time - O(log n)
+//same as above
 // find in a bitonic array -> find peak -> do BS in left half for target -> if not found do BS in right half
 class Solution {
     public int peakIndexInMountainArray(int[] arr) {
