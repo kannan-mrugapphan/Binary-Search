@@ -1,56 +1,40 @@
 // 50.
-
+// time - O(2^logn)
+// space - O(log n) -> call stack size
 class Solution {
     public double myPow(double x, int n) {
-        if(n > 0)
+        //edge
+        if(x == 0)
         {
-            //return findPowerRecursive(x, n);
-            return findPowerIterative(x, n);
+            return 0.0; //0^n = 0
         }
-        else if(n < 0)
+        if(n == 0)
         {
-            //return 1/findPowerRecursive(x, -n); //x^-n = 1/(x^n)
-            return 1/findPowerIterative(x, -n);
+            return 1.0; //x^0 = 1
         }
-        //n = 0; x^0 = 1
-        return 1.0;
+        if(n < 0)
+        {
+            double result = power(x, -n);
+            return 1 / result;
+        }
+        return power(x, n);
     }
     
-    //time - O(log n)
-    //space - O(log n) for the call stack
-    private double findPowerRecursive(double x, int n) {
+    private double power(double x, int n) {
         //base
         if(n == 0)
         {
-            return 1.0;
+            return 1.0; //x^0 = 1
         }
         //logic
-        //find x^(n/2)
-        double temp = findPowerRecursive(x, n / 2);
+        //2^10 = 2*2*2*2*2*2*2*2*2*2 -> 2^5 * 2^5 -> (2^2 * 2^2 * 2) -> (2^1 * 2^1)
+        double result = power(x, n/2);
         if(n % 2 == 0)
         {
-            return temp * temp; //x^n = x^(n/2) * x^(n/2) if n is even
+            //1st recurse call in 2^10 example
+            return result * result;
         }
-        else
-        {
-            return x * temp * temp; //x^n = x^(n/2) * x^(n/2) * x if n is even
-        }
-    }
-    
-    //time - O(log n)
-    //space - constant
-    private double findPowerIterative(double x, int n) {
-        double result = 1.0;
-        while(n > 0)
-        {
-            if(n % 2 != 0) //when power hits odd multiply result by current x
-            {
-                result *= x; 
-            }
-            // 2^4 -> 4^2 -> 16^1 (at this point result = 16) -> 256^0(breaks out to return result)
-            n = n / 2; 
-            x = x * x;
-        }
-        return result;
+        //n is odd -> 2^5 recursive call example
+        return result * result * x;
     }
 }
