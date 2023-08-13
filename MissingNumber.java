@@ -54,3 +54,73 @@ class Solution {
         return low;
     }
 }
+
+// 136.
+// without sorting, find xor of all elements in nums[], duplicates will cancel out each other and single element will be the result - time - O(n) with constant space
+// time - O(log n) with constant space
+class Solution {
+    public int singleNumber(int[] nums) {
+       Arrays.sort(nums);
+
+       //to account for array index out of bounds when checking if mid is the single element, initialize the search space with [1, nums.length - 2]
+       //check if array has just one element
+       if(nums.length == 1)
+       {
+           return nums[0];
+       }
+       //check if 1st element and last element are single numbers seperately
+       if(nums[0] != nums[1])
+       {
+           return nums[0];
+       }
+       if(nums[nums.length - 1] != nums[nums.length - 2])
+       {
+           return nums[nums.length - 1];
+       }
+       int low = 1;
+       int high = nums.length - 2;
+
+       while(low <= high)
+       {
+           int mid = low + (high - low) / 2;
+           //check if mid is the single element
+           if(nums[mid] != nums[mid - 1] && nums[mid] != nums[mid + 1])
+           {
+               return nums[mid];
+           }
+           
+           //mid is at en even index
+           if(mid % 2 == 0)
+           {
+               //check if left half is valid with all double elements
+               //if all elements are present twice, each pair with start at an odd index and end at an even index
+               //eg: [1,1,2,2,3]
+               if(nums[mid] == nums[mid + 1])
+               {
+                   low = mid + 1;
+               }
+               //eg: [1,2,2,3,3]
+               else
+               {
+                   high = mid - 1;
+               }
+           }
+           //mid is at an odd index
+           else
+           {
+               //eg: [1,1,2]
+               if(nums[mid] == nums[mid - 1])
+               {
+                   low = mid + 1;
+               }
+               //eg: [1,2,2]
+               else
+               {
+                   high = mid - 1;
+               }
+           }
+       } 
+
+       return -1; //code never reaches here
+    }
+}
