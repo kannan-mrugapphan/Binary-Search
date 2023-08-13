@@ -1,57 +1,46 @@
 // 268.
-
+// time - O(n logn) for sorting and O(log n) to find missing number
+// brute force - missing number = (n * n + 1) / 2 - sum of all elements
 class Solution {
     public int missingNumber(int[] nums) {
         //edge
         if(nums == null || nums.length == 0)
         {
-            return 0;
+            return 0; //empty array, 1st missing number is 0
         }
-        
-        return arithmeticSum(nums);
-    }
-    
-    //time - O(n)
-    //space - O(1)
-    private int arithmeticSum(int[] nums) {
-        int sum = 0; //stores sum of all numbers in nums[]
-        for(int num : nums)
-        {
-            sum += num;
-        }
-        
-        //[0, 1, 3] is  [0, 1, 2, 3] (including the missing number)
-        //so the actual nums[] has numners from [1 to input-nums.length] plus 0
-        //so sum of that is n(n + 1) / 2
-        //difference gives the missing number
-        int expected = (nums.length * (nums.length + 1)) / 2;
-        
-        return expected - sum;
-    }
-    
-    //binary serach approach - works when array is sorted
-    //time - O(log n)
-    //space - O(1)
-    private int search(int[] nums) {
-        Arrays.sort(nums); //sort nums[]
-        
-        int low = 0;
+
+        Arrays.sort(nums);
+
+        //if array didn't have any missing number, the index will be same as number
+        //eg: [0,1,2,3,4] -> length = 5, all numbers are at their correct index
+        //eg: [0,1,3,4,5] -> first 2 numbers are at the correct index, remaining numbers are at wrong index
+        //1st number at which index mismatch happens is 3 (index 2) so missing number is 2 (its index)
+        int low = 0; //initially search space is whole array
         int high = nums.length - 1;
-        
+
+        int result = nums.length; //if all numbers are at correct position, the 1st missing number is n
+
+        //as long as search space has atleast 1 element
         while(low <= high)
         {
             int mid = low + (high - low) / 2;
-            if(mid == nums[mid]) //missing number is in the right half
+            if(nums[mid] == mid)
             {
+                //[low, mid] is at correct position
+                //missing number is in right half
                 low = mid + 1;
             }
-            else //missing number is in the left half
+            else
             {
+                //all numbers in [mid, high] are at wrong index
+                //missing number is in range [low, mid] -> 1st position where index mismatch happens in this range
+                //track mid in result and go to left half
+                result = mid;
                 high = mid - 1;
             }
         }
-        
-        return low;
+
+        return result;
     }
 }
 
