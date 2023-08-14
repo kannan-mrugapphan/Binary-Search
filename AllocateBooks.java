@@ -1,3 +1,4 @@
+
 class Solution 
 {   
     //time - O(log(sum(books[]) - max(books[])) * length of books[]) with costant space
@@ -32,25 +33,18 @@ class Solution
             //compute number of students needed if max pages that a student can take is mid
             int students = findStudents(A, mid);
             
-            System.out.println(mid + "----" + students);
-            
-            if(students == M)
+            if(students <= M)
             {
                 //mid is valid allocation
                 result = mid;
-                //try to see if N books can be allocated to M students with lower limit, search in left half
+                //try to see if N books can be allocated to M (or fewer) students with lower limit, search in left half
                 high = mid - 1; 
-            }
-            else if(students < M)
-            {
-                //increase the limit of pages for each student to increase count of students possible
-                //search in right half
-                low = mid + 1;
             }
             else if(students > M)
             {
-                //less students are needed, increase limit for each student, search in left half
-                high = mid - 1;
+                //increase the limit of pages for each student to reduce count of students possible
+                //search in right half
+                low = mid + 1;
             }
         }
         
