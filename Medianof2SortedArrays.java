@@ -1,59 +1,87 @@
 // 4.
-//brute force - merge sorted lists to a single sorted list to find median - time - O(m + n) 
-//with extra space of O(m + n) to store the merged list
-//time - O(log min(nums1.length, nums2.length)) with constant space
-
+//brute force - merge 2 sorted arrays into single sorted array, median is computed with the center elements
+// time - O(log(min(n1, n2))) with constant space
 class Solution {
     public double findMedianSortedArrays(int[] nums1, int[] nums2) {
-        //ensure that 1st array in i/p argument has shorter length
-        if(nums1.length > nums2.length)
+        int n1 = nums1.length;
+        int n2 = nums2.length;
+
+        //perform binary search on shorter array to have smaller [low, high] range
+        if(n1 > n2)
         {
             return findMedianSortedArrays(nums2, nums1);
         }
         
-        int n1 = nums1.length;
-        int n2 = nums2.length;
-    
-        //possible places at which nums1 can be partioned are from o to nums1.length
-        int low = 0;
-        int high = nums1.length;
-        
+        //a = [1,3,5,7,9] and b = [0,2,4,6,8]
+        //merged = [0,1,2,3,4 | 5,6,7,8,9] since merged has even elements, median is the avg of elements around the center => (4+5)/2 = 4.5
+        //left half has 5 elements and the remaining elements are in the right half
+        //left half can 0 or 1 or 2 or 3 or 4 or 5 elements from the 1st array and the remaining elements from b
+        //1 from 1st array and 4 from 2nd array
+        // { 1 }           |   { 3, 5, 7, 9 }
+        // { 0, 2, 4, 6 }  |   { 8 }
+        //for this partition, all elements in left must be smaller than or equal to all elements in right
+        // 1 <= 8, so all elements in 1st array in left half is smaller than all elements in 2nd array in right
+        // but because 6 > 3 implies that all elements in 2nd array in left is not smaller than all elements in 1st array in right
+        // so 6 in 2nd array in left should be pushed right and 3 in right half of 1st array should be pushed left
+        //3 from 1st array and 2 from 2nd array
+        // { 1, 3, 5 } |  { 7, 9 }
+        // { 0, 2 }    |  { 4, 6, 8 }
+        // 2 <= 7 so all elements in 2nd array in left is smaller than all elements in 1st array in right
+        // but 5 > 4, so all elements in 1st array in left is not smaller than all elements in 2nd array in right
+        // so 5 in 1st array should be pushed right and 4 in 2nd array should be pushed  left
+        //2 from 1st array and 3 from 2nd array 
+        // { 1, 3 }      |   { 5, 7, 9 }
+        // { 0, 2, 4 }   |   { 6, 8 }
+        // this split is valid as 4 <= 5 and 3 <= 6
+        //out of all possible splits, only one will be valid
+        //once the split is found, median is (max(l1, l2) + min (r1, r2)) / 2 -> 1st half is left of center and 2nd half is right of center, median is avg if combined array has even elements
+        //if combined array has odd elements, median is max(l1, l2) as it is the at the left of center
+
+        int low = 0; //at min 0 elements can be picked from 1st array
+        //all elements in left can be from 1st array ((n1+n2+1)/2) 
+        //if number of elements in 1st array is smaller than this then pick all
+        int high = Math.min(n1, (n1 + n2 + 1) / 2); 
+
+        //as long as search space has valid elements
         while(low <= high)
         {
-            //for partion in nums1, corresponding partion in nums2 is (n1 + n2 + 1) / 2 - nums1Partion
-            int partNums1 = low + (high - low) / 2; //try partioning nums1 at the middle
-            int partNums2 = ((n1 + n2 + 1) / 2) - partNums1; //find corresponding partion in nums2
-            //find l1, l2, r1, r2 (updated with -inf and inf at the edges)
-            int l1 = partNums1 != 0 ? nums1[partNums1 - 1] : Integer.MIN_VALUE;
-            int l2 = partNums2 != 0 ? nums2[partNums2 - 1] : Integer.MIN_VALUE;
-            int r1 = partNums1 != n1 ? nums1[partNums1] : Integer.MAX_VALUE;
-            int r2 = partNums2 != n2 ? nums2[partNums2] : Integer.MAX_VALUE;
-    
-            //a valid partion is obtained if l1 <= r1, l2 <= r1, l2 <= r1 and l2 <= r2
-            if(l2 <= r1 && l1 <= r2)
+            int array1Contribution = low + (high - low) / 2; //pick mid elements from array 1
+            int array2Contribution = ((n1 + n2 + 1) / 2) - array1Contribution; //the remaining elements in left half are from 2nd array
+
+            //compute the left and right boundary elements
+            //if no elements are picked in the left half from array1(array 2) then l1(l2) is -infinity
+            int l1 = (array1Contribution == 0) ? Integer.MIN_VALUE : nums1[array1Contribution - 1];
+            int l2 = (array2Contribution == 0) ? Integer.MIN_VALUE : nums2[array2Contribution - 1];
+            //if all elements are picked in the left half from array1(array 2) then r1(r2) is infinity
+            int r1 = (array1Contribution == n1) ? Integer.MAX_VALUE : nums1[array1Contribution];
+            int r2 = (array2Contribution == n2) ? Integer.MAX_VALUE : nums2[array2Contribution];
+
+            //check if it is a valid split
+            if(l1 <= r2 && l2 <= r1)
             {
-                if((n1 + n2) % 2 != 0)
+                if((n1+n2) % 2 == 0)
                 {
-                    return Math.max(l1, l2); //total 3 of elements is odd
+                    return (Math.max(l1, l2) + Math.min(r1, r2)) / 2.0; //combined array has even elements
                 }
                 else
                 {
-                    return (Math.max(l1, l2) + Math.min(r1, r2)) / 2.0; //total 3 of elements is even
+                    return Math.max(l1, l2); //combined array has odd elements
                 }
             }
-            
-            //l1 should be part of right side of partion in nums1
+
             else if(l1 > r2)
             {
-                high = partNums1 - 1;
+                //elements picked from nums1 should be pushed to right to make it fall under case1 in next iteration
+                high = array1Contribution - 1;
             }
-            
-            //r1 should be part of left half of nums1 partion
-            else //l2 > r1
+
+            else if(l2 > r1)
             {
-                low = partNums1 + 1;
-            }  
+                //elements picked from nums2 should be pushed to right, so pick more elements from nums1
+                low = array1Contribution + 1;
+            }
         }
-        return -1.0;
+
+        return 0.0; //code never reaches here
     }
 }
