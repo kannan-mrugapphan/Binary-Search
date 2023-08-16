@@ -41,3 +41,36 @@ class Solution {
         return false;
     }
 }
+
+// 240.
+// time - O(m + n) -> each iteration, either 1 row or 1 col is eliminated
+// space - constant
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        //start from top right
+        int row = 0;
+        int col = matrix[0].length - 1;
+
+        while(row < matrix.length && col >= 0)
+        {
+            if(matrix[row][col] == target)
+            {
+                return true;
+            }
+
+            else if(matrix[row][col] < target)
+            {
+                //all elements in current row will be lower 
+                row++;
+            }
+
+            else if(matrix[row][col] > target)
+            {
+                //all elements in current col will be larger than target
+                col--;
+            }
+        }
+
+        return false;
+    }
+}
