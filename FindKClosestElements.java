@@ -1,135 +1,70 @@
-//658.
-
-class Pair {
-    int element;
-    int distance;
-    
-    public Pair(int element, int distance) {
-        this.element = element;
-        this.distance = distance;
-    }
-}
-
-//custom comparator for max heap
-class custom implements Comparator<Pair> {
-    public int compare(Pair p1, Pair p2)
-    {
-        if(p1.distance < p2.distance)
-        {
-            return 1;
-        }
-        else if(p1.distance > p2.distance)
-        {
-            return -1;
-        }
-        return 0;
-    }
-}
-
+// 658.
+// time - O(log (n-k)) binary serach on possible windows
+// space - costant
 class Solution {
     public List<Integer> findClosestElements(int[] arr, int k, int x) {
-        //edge 
-        if(arr == null || arr.length == 0)
+        //eg: [1,2,3,4,5] with k = 2, the possible windows are [1,2] [2,3] [3,4] [4,5]
+        //window with lowest start is at index 0
+        //window with highest start is at index n - k
+        //consider window [3,4] -> if element just outside the window (5) is more closer to target, then all windows with starting point to left of current start (including the current window) are discarded 
+        //if the element just outside (5) is farther to target than current start, then all windows with start point towards right can be discarded (current window is also stored in result as it could be the potential answer and then the windows in the left are searched for)
+
+        int n = arr.length;
+        int low = 0; //window with lowest start point
+        int high = n - k - 1; //window with highest start point
+
+        //since at every point, the element just outside the window is compared with element at window start
+        //this outside element can be out of bounds for window starting at n-k
+        //so this window is set to result and this window is not considered in search space
+        int result = n - k; //let the window at the rightmost start be the result initially
+
+        //as long as there are more windows
+        while(low <= high)
         {
-            return null;
-        }
-        
-        //return findUsingHeap(arr, k, x);
-        //return twoPointer(arr, k, x);
-        return binarySearch(arr, k, x);
-    }
-    
-    //time - O(nlogk)
-    //space - O(k)
-    private List<Integer> findUsingHeap(int[] arr, int k, int x) {
-        //support is a max heap of ojects (with values and distance from x) based on distance 
-        PriorityQueue<Pair> support = new PriorityQueue<>(k, new custom());
-        List<Integer> result = new ArrayList<>();
-        //iterate and populate pq till size less than k
-        //then, if dist of root is greater than the distance of current, remove root and insert current
-        for(int num : arr)
-        {
-            Pair current = new Pair(num, Math.abs(num - x));
-            if(support.size() < k)
+            int mid = low + (high - low) / 2;
+            int elementOutsideWindow = arr[mid + k];
+            System.out.println(low + "-----" + high + "------" + mid + "-----" + elementOutsideWindow);
+
+            //current window start element is more farther than element just outside
+            if(Math.abs(elementOutsideWindow - x) < Math.abs(arr[mid] - x))
             {
-                support.offer(current);
+                //all windows with starts as [low, mid] are more farther as they don't include outside element
+                low = mid + 1; 
+            }
+            else if(Math.abs(elementOutsideWindow - x) > Math.abs(arr[mid] - x))
+            {
+                //outside element is farther than window start
+                //all windows with start from [mid + 1, end] won't include nums[mid] so are more farther
+                result = mid;
+                high = mid - 1;
             }
             else
             {
-                if(current.distance < support.peek().distance)
+                //element just outside the window is at same distance as the window start
+                if(arr[mid] == elementOutsideWindow)
                 {
-                    support.poll();
-                    support.offer(current);
+                    //start element same as outside element
+                    //eg: [2,2,2] with outside element as 2
+                    //in this case current window is same as next window as that will include outside element but distance is same
+                    //eindows starting at left will either be at same or farther distance
+                    low = mid + 1;
+                }
+                else
+                {
+                    //in othe cases when start element < outside elmenent (start element is more closer)
+                    result = mid;
+                    high = mid - 1;
                 }
             }
         }
-        //poll from the pq and insert into result
-        while(!support.isEmpty())
-        {
-            result.add(support.poll().element);
-        }
-        //return sorted version of result
-        Collections.sort(result); //runs for klogk 
-        return result;
-    }
-    
-    //time - O(n - k)
-    //space - constant - excluding the result
-    private List<Integer> twoPointer(int[] arr, int k, int x) {
-        int low = 0;
-        int high = arr.length - 1;
-        
-        while(high - low + 1 > k) //as long as there are more elements than k
-        {
-            int lowDist = Math.abs(arr[low] - x); //dist of last element from x
-            int highDist = Math.abs(arr[high] - x); //dist of first element from x
-            if(lowDist > highDist) //first element is farther and can be ignored
-            {
-                low++;
-            }
-            else //last element is farther and can be ignored
-            {
-                high--;
-            }
-        }
-        
+
+        //result is start of correct window
         List<Integer> answer = new ArrayList<>();
-        for(int i = low; i <= high; i++)
+        for(int i = result; i < result + k; i++)
         {
             answer.add(arr[i]);
         }
-        return answer;
-    }
-    
-    //time - O(logn + k)
-    //space - O(1) excluding the result
-    private List<Integer> binarySearch(int[] arr, int k, int x) {
-        int lowStart = 0; //lowest possible left bound of the optimal region
-        int highStart = arr.length - k; //highest possible left bound of the optimal region
-        
-        while(lowStart < highStart)
-        {
-            int mid = lowStart + (highStart - lowStart) / 2; //find middle (possible left bound)
-            int right = mid + k; //calculate corresponding right bound
-            
-            int leftDist = Math.abs(arr[mid] - x); //find left bound dist
-            int rightDist = Math.abs(arr[right] - x); //find right bound dist
-            
-            if(leftDist > rightDist)
-            {
-                lowStart = mid + 1;
-            }
-            else
-            {
-                highStart = mid;
-            }
-        }
-        
-        List<Integer> answer = new ArrayList<>();
-        for(int i = lowStart; i < lowStart + k; i++)
-        {
-            answer.add(arr[i]);
-        }
+
         return answer;
     }
 }
