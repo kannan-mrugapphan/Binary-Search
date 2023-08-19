@@ -23,7 +23,6 @@ class Solution {
         {
             int mid = low + (high - low) / 2;
             int elementOutsideWindow = arr[mid + k];
-            System.out.println(low + "-----" + high + "------" + mid + "-----" + elementOutsideWindow);
 
             //current window start element is more farther than element just outside
             if(Math.abs(elementOutsideWindow - x) < Math.abs(arr[mid] - x))
