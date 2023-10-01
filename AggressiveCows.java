@@ -1,71 +1,70 @@
-// Aggressive Cows
 // 1552.
-// time - O(nlogn) for sorting + O(log(max element) * n) for search
-// space - constant
+//Aggressive Cows
+//n stalls where position of ith stall is in positions[i]
+//m workers have to be placed into n stalls such that
+    //each of the m works should be placed
+    //2 workers can't be placed in the same stall
+//after placing all m workers, the min distance between any 2 works among all m workers should be as large as possible
+
+//time - O(n * log(largest element - smallest element in positions[]))
+//space - constant
 class Solution {
     public int maxDistance(int[] position, int m) {
-        //requirements
-        //each basket can have only 1 ball
-        //all balls should be placed in basket
         //edge
         if(m > position.length)
         {
-            return Integer.MAX_VALUE; //number of balls is larger than number of baskets
+            //number of workers is larger than available stalls
+            return Integer.MIN_VALUE; //placement not possible
         }
 
-        //consider 4 baskets at [x1,x2,x3,x4] and 3 balls b1,b2,b3
-        //let b1 be placed at x1 and b2 at x2
-        //now the last ball b3 can be placed either at x3 or x4
-        //to choose the optimal basket, distance between x1,x3 and x2,x3 is needed also distance between x1,x4 and x2,x4 are also needed (the one with min distance is selected)
-        //if x1,x2,x3,x4 are sorted in incresing order
-        //to place b3 at x3, distance between x2 and x3 is needed and to place at x4, distance between x2, x4 is needed, the min is selected
+        //consider an unsorted positions array and all m workers are placed
+        //to find min distance between any 2 workers among all m workers, n^2 computations are needed
+        //if the positions array is sorted, min distance between any 2 workers among all m workers can be computed in linear time
         Arrays.sort(position);
 
-        int low = 1; //min distance should atleast be 1 as each ball needs its own basket
-        int high = position[position.length - 1] - position[0]; //max distance is possible if count of balls is 2 and the 1st ball is at 0th basket and 2nd ball is at last basket
+        int lowestDistance = 1; //lowest possible distance between 2 workers among all is 1 as 2 workers can't be in same stall
+        int highestDistance = position[position.length - 1] - position[0]; //largest possible distance is possible when number of workers is 2 and place 1st worker in 0th stall and 2nd worker in last stall
+        int result = 1; // lowestDistance <= result <= highestDistance, result has to be maximized, so initialize result to min in range
 
-        //optimal distance is between [low, high]
-        int result = low; //maximize result, so default to min in range
-        while(low <= high)
+        while(lowestDistance <= highestDistance)
         {
-            int mid = low + (high - low) / 2;
-            //compute the number of balls that can be placed if distance between 2 balls is atleast mid
-            int balls = countBalls(position, mid);
+            int middleDistance = lowestDistance + (highestDistance - lowestDistance) / 2;
+            //count number of workers that can be placed if min distance between any 2 workers among all m workers is middle distance
+            int workers = countWorkers(position, middleDistance);
 
-            //if number of balls is m
-            if(balls >= m)
+            if(workers >= m)
             {
-                result = mid; //update result and try increasing distance to place all m balls, search in right half
-                low = mid + 1;
+                //more than m workers can be placed if the distance between any 2 workers is atleast middle
+                result = middleDistance; //update result
+                lowestDistance = middleDistance + 1; //search in right for even larger distance
             }
             else
             {
-                //balls count is less than m, try reducing distance to place more balls, search in left half
-                high = mid - 1;
+                //m workers can't be placed if the distance between any 2 workers is atleast middle
+                highestDistance = middleDistance - 1; //search in left for smaller distance
             }
         }
 
         return result;
     }
 
-    //computes number of balls that can be placed if the distance between 2 balls is atleast d
-    // time - O(n) with constant space
-    private int countBalls(int[] position, int distance)
+    //returns count of workers that can be placed if distance between any 2 workers is atleast the given int
+    //time - O(n) with constant space
+    private int countWorkers(int[] position, int distance)
     {
-        //target is place to as many baskets as possible such that distance between 2 baskets is atleast d
-        //so greedily place 1st basket in 0th position
-        int balls = 1; 
-        int lastBallPosition = position[0]; 
+        int workers = 1; //greedily place the 1st worker in 0th stall as the target is to place more workers
+        int lastWorkerPosition = position[0];
 
         for(int i = 1; i < position.length; i++)
         {
-            if(position[i] - lastBallPosition >= distance)
+            //worker can be placed in current stall if distance between current stall and prev worker is larger than incoming distance
+            if(position[i] - lastWorkerPosition >= distance)
             {
-                balls++; //distance between current basket and prev ball is larger than d, place ball in current
-                lastBallPosition = position[i]; 
+                workers++;
+                lastWorkerPosition = position[i];
             }
         }
 
-        return balls;
+        return workers;
     }
 }
