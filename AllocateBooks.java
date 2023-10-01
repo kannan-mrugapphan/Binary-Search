@@ -1,77 +1,87 @@
+//n books and the number of pages in ith book is in arr[i]
+//m students should be allocated books such that
+        //each of the m students has atleast 1 book
+        //all books should be allocated
+        //2 students can't share a book
+        //1 student can pick multiple books
+        //book allocation should be in a continous manner - 1st & 3rd book to student isn't valid
+//allocate books such that max pages that each student has is minimum
 
-class Solution 
-{   
-    //time - O(log(sum(books[]) - max(books[])) * length of books[]) with costant space
-    public static int findPages(int[] A, int N, int M)
-    {
-        //all books must be allocated
-        //every student should atleast have 1 book (possibly more)
-        //book allocation should be contiguous i.e book1,book3 to student1 and book2 to student2 is not possible
+//time - O(n * log(sum(n) - max(n)))
+//space - O(1)
+import java.util.ArrayList;
+public class Solution {
+    public static int findPages(ArrayList<Integer> arr, int n, int m) {
         //edge
-        if(M > N)
+        if(m > n)
         {
-            return -1; //assignment not possible as number of students is larger than that of books
+            return -1; //number of students is larger than number of books
         }
-        
-        //min number of pages that each student must take should be book with largest pages
-        //some student should pick this largest book
-        //worst case, if M = 1, all books should be alloted to single student
-        //so max pages a student can take is sum of pages in all books
-        int low = Integer.MIN_VALUE; //max in bookes[]
-        int high = 0; //sum of all books
-        for(int pages : A)
+
+        //if 1 book is alloted to each student (test case n = m), then max pages for student is 
+        //size of largest book
+        int lowestPages = Integer.MIN_VALUE; //max(arr)
+
+        //if all books are allocated to same student (test case m = 1), then max pages for student
+        //is sum of pages in all books
+        int highestPages = 0;
+        for(int i = 0; i < arr.size(); i++)
         {
-            low = Math.max(low, pages);
-            high += pages;
+            highestPages += arr.get(i);
+            lowestPages = Math.max(lowestPages, arr.get(i));
         }
-        
-        //optimal pages is in [low, high]
-        int result = high; //minimize number of pages, so set it to max in range
-        while(low <= high)
+
+        //System.out.println(lowestPages + "-------" + highestPages);
+
+        //lowestPages <= result <= highestPages and result should be min, so default it to max in range
+        int result = highestPages; 
+        while(lowestPages <= highestPages)
         {
-            int mid = low + (high - low) / 2;
-            //compute number of students needed if max pages that a student can take is mid
-            int students = findStudents(A, mid);
-            
-            if(students <= M)
+            int mid = lowestPages + (highestPages - lowestPages) / 2;
+            //compute number of students to which n books can be alloted 
+            //if max pages a student can have is mid
+            int students = countStudents(arr, mid);
+
+            //System.out.println(mid + "-----" + students);
+            if(students <= m)
             {
-                //mid is valid allocation
+                //fewer students can finish all books
+                //reduce pages per student as we have more students with us 
+                //and are looking to reduce max pages per student - search in left
                 result = mid;
-                //try to see if N books can be allocated to M (or fewer) students with lower limit, search in left half
-                high = mid - 1; 
-            }
-            else if(students > M)
-            {
-                //increase the limit of pages for each student to reduce count of students possible
-                //search in right half
-                low = mid + 1;
-            }
-        }
-        
-        return result;
-    }
-    
-    //computes number of students to finish all books if number of pages a student can take is given
-    //time - O(n) with constant space
-    private static int findStudents(int[] books, int limit)
-    {
-        int students = 1;
-        int pagesForCurrentStudent = 0; //initially 1st student has no books so 0 pages
-        for(int book : books)
-        {
-            if(pagesForCurrentStudent + book <= limit)
-            {
-                //current student can pick current book
-                pagesForCurrentStudent += book;
+                highestPages = mid - 1;
             }
             else
             {
+                //we don't have enough students to finish all books if mid is max pages per student
+                //reduce students, increase pages, search in right
+                lowestPages = mid + 1;
+            }
+        }
+
+        return result;
+    }
+
+    //computes number of students to finish all books if max pages per student is given
+    //time - O(n) with constant space 
+    private static int countStudents(ArrayList<Integer> arr, int maxPages)
+    {
+        int students = 1; 
+        int pages = 0; //pages assigned to current student
+        for(int i = 0; i < arr.size(); i++)
+        {
+            if(pages + arr.get(i) <= maxPages)
+            {
+                //assign current book to current student
+                pages += arr.get(i);
+            }
+            else{
                 //assign current book to next student
-                pagesForCurrentStudent = book;
+                pages = arr.get(i);
                 students++;
             }
         }
-        
+
         return students;
     }
 }
